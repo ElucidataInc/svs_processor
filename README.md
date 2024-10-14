@@ -39,21 +39,21 @@ project_directory/
 
 ## Create and activate virtual environment
 
-`python -m venv venv`
-`source venv/bin/activate`
+`python -m venv venv`  
+`source venv/bin/activate`  
 
 ## Install python dependencies
 
-`pip install openslide-python`
-`pip install Pillow`
+`pip install openslide-python`  
+`pip install Pillow`  
 
 ### Note: You may need to install OpenSlide itself depending on your operating system. 
 For Ubuntu:
-`sudo apt-get install openslide-tools`
+`sudo apt-get install openslide-tools`  
 
 For macOS:
-`brew install openslide`
+`brew install openslide`  
 
 ### Run script
 
-`python3 main.py`
+`python3 main.py`  
