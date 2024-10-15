@@ -1,5 +1,3 @@
-# main.py
-
 from svs_processor.processor import SVSProcessor
 
 if __name__ == "__main__":
