@@ -20,8 +20,8 @@ class SVSProcessor:
     """
     def __init__(self, wsi_filename, output_dir, thumbnail_size=(200, 200), level=0, wsi_url=None):
         """Initializes the SVSProcessor with paths, thumbnail size, and image level."""
-        self.images_dir = 'images'  # Folder where SVS files will be stored
-        self.svs_file_path = os.path.join(self.images_dir, wsi_filename)
+        self.images_dir = 'images'
+        self.svs_file_path = wsi_filename
         self.output_dir = output_dir
         self.thumbnail_size = thumbnail_size
         self.level = level
@@ -29,26 +29,23 @@ class SVSProcessor:
 
         # Ensure output directory exists
         if not os.path.exists(self.output_dir):
-            os.makedirs(self.output_dir)  # Create the directory if it doesn't exist
+            os.makedirs(self.output_dir)
 
-        # Ensure PNG folder exists
         self.png_folder = os.path.join(self.output_dir, 'png')
         if not os.path.exists(self.png_folder):
             os.makedirs(self.png_folder)
 
-        # Ensure the images folder exists and download the SVS file if necessary
         self.download_svs_file()
 
     def download_svs_file(self):
         """Download the SVS file if it's not already present in the images folder."""
         if not os.path.exists(self.images_dir):
-            os.makedirs(self.images_dir)  # Ensure the 'images' folder exists
+            os.makedirs(self.images_dir)
 
         if not os.path.isfile(self.svs_file_path):
             if self.wsi_url:
                 print(f"Downloading SVS file from {self.wsi_url} into {self.images_dir}...")
                 try:
-                    # Use curl to download the file and save it in the images/ folder
                     subprocess.run(['curl', '-o', self.svs_file_path, self.wsi_url], check=True)
                     print(f"Downloaded {self.svs_file_path}")
                 except subprocess.CalledProcessError as e:

@@ -2,17 +2,41 @@ import os
 from svs_processor.processor import SVSProcessor
 
 if __name__ == "__main__":
-    images_dir = '../images/'
+    
+    images_dir = 'images/'
+    output_dir = 'output_directory/'
+
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
     if not os.path.exists(images_dir):
-        os.makedirs(images_dir)
+        print(f"Error: The images directory '{images_dir}' does not exist.")
+    else:
+        print(f"Processing files in {os.path.abspath(images_dir)}...")
 
-    wsi_filename = 'TCGA-02-0010-01Z-00-DX4.07de2e55-a8fe-40ee-9e98-bcb78050b9f7.svs'
+    processed_files = 0
+    for svs_filename in os.listdir(images_dir):
+        if svs_filename.endswith(".svs"):
+            svs_file_path = os.path.join(images_dir, svs_filename)
 
-    wsi_url = 'https://data.kitware.com/api/v1/file/5899dd6d8d777f07219fcb23/download'
+            print(f"Looking for SVS file at: {os.path.abspath(svs_file_path)}")
 
-    output_dir = '../output_directory'
+            if not os.path.exists(svs_file_path):
+                print(f"Error: File {os.path.abspath(svs_file_path)} not found.")
+                continue
 
-    processor = SVSProcessor(os.path.join(images_dir, wsi_filename), output_dir, thumbnail_size=(200, 200), level=0, wsi_url=wsi_url)
-    processor.process()
+            file_output_dir = os.path.join(output_dir, os.path.splitext(svs_filename)[0])
+            if not os.path.exists(file_output_dir):
+                os.makedirs(file_output_dir)
 
+            print(f"Processing {svs_filename}...")
+            processor = SVSProcessor(svs_file_path, file_output_dir, thumbnail_size=(200, 200), level=0)
+            processor.process()
+
+            processed_files += 1
+            print(f"Finished processing {svs_filename}\n")
+
+    if processed_files == 0:
+        print(f"No SVS files found in {images_dir}. Please check the folder and try again.")
+    else:
+        print(f"Processed {processed_files} SVS files.")
