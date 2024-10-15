@@ -33,8 +33,8 @@ project_directory/
 
 ## Environment Setup
 
-`git clone git@github.com:ElucidataInc/svs_processor.git`
-`cd svs-processor`
+`git clone git@github.com:ElucidataInc/svs_processor.git`  
+`cd svs-processor`  
 
 
 ## Create and activate virtual environment
