@@ -29,6 +29,12 @@ if __name__ == "__main__":
             if not os.path.exists(file_output_dir):
                 os.makedirs(file_output_dir)
 
+            # Check if the metadata file already exists
+            metadata_file_path = os.path.join(file_output_dir, f"{os.path.splitext(svs_filename)[0]}_metadata.csv")
+            if os.path.exists(metadata_file_path):
+                print(f"Metadata already exists for {svs_filename}. Skipping...")
+                continue
+
             print(f"Processing {svs_filename}...")
             processor = SVSProcessor(svs_file_path, file_output_dir, thumbnail_size=(200, 200), level=0)
             processor.process()
