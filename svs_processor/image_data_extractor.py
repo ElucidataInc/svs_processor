@@ -3,36 +3,37 @@ import csv
 import openslide
 import logging
 
-# Setup logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
 class ImageDataExtractor:
-    def __init__(self, svs_file_path, output_dir):
+    def __init__(self, svs_file_path, metadata_output_dir, svs_id):
         self.svs_file_path = svs_file_path
-        self.output_dir = output_dir
+        self.metadata_output_dir = metadata_output_dir
+        self.svs_id = svs_id
+        self.image_data_csv = os.path.join(metadata_output_dir, "svs_image_data.csv")
 
     def extract(self):
         if not os.path.exists(self.svs_file_path):
             logging.error(f"File {self.svs_file_path} not found.")
             return
 
+        if not os.path.exists(self.metadata_output_dir):
+            os.makedirs(self.metadata_output_dir)
+
         try:
             slide = openslide.OpenSlide(self.svs_file_path)
-            output_csv = os.path.join(self.output_dir, f"{os.path.splitext(os.path.basename(self.svs_file_path))[0]}_image_data.csv")
             image_data = []
             num_levels = slide.level_count
 
-            for level in range(num_levels):
-                width, height = slide.level_dimensions[level]
-                downsample = slide.level_downsamples[level]
-                image_data.append([level, width, height, downsample])
-
-            with open(output_csv, mode='w', newline='') as csv_file:
+            with open(self.image_data_csv, mode='a', newline='') as csv_file:
                 writer = csv.writer(csv_file)
-                writer.writerow(['Level', 'Width', 'Height', 'Downsample'])
-                writer.writerows(image_data)
+                if os.stat(self.image_data_csv).st_size == 0:
+                    writer.writerow(['svs_id', 'file_name', 'level', 'width', 'height', 'downsample'])
 
-            logging.info(f"Image data written to {output_csv}")
+                for level in range(num_levels):
+                    width, height = slide.level_dimensions[level]
+                    downsample = slide.level_downsamples[level]
+                    writer.writerow([self.svs_id, os.path.basename(self.svs_file_path), level, width, height, downsample])
+
+            logging.info(f"Image data appended to {self.image_data_csv}")
         except openslide.OpenSlideError as e:
             logging.error(f"Error reading the SVS file: {e}")
         finally:
