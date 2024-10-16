@@ -1,25 +1,22 @@
 import os
 import csv
 import openslide
+import logging
+
+# Setup logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class MetadataExtractor:
-    """
-    A class to extract metadata from an SVS file and save it to a CSV file.
-
-    Attributes:
-        svs_file_path (str): The path to the SVS file to process.
-        output_dir (str): The directory where output files will be saved.
-    """
     def __init__(self, svs_file_path, output_dir):
         self.svs_file_path = svs_file_path
         self.output_dir = output_dir
 
     def extract(self):
-        """Extracts metadata from the SVS file and writes it to a CSV."""
         if not os.path.exists(self.svs_file_path):
-            print(f"Error: File {self.svs_file_path} not found.")
+            logging.error(f"File {self.svs_file_path} not found.")
             return
 
+        slide = None
         try:
             slide = openslide.OpenSlide(self.svs_file_path)
             metadata = slide.properties
@@ -31,8 +28,9 @@ class MetadataExtractor:
                 for key, value in metadata.items():
                     writer.writerow([key, value])
 
-            print(f"Metadata written to {output_csv}")
+            logging.info(f"Metadata written to {output_csv}")
         except openslide.OpenSlideError as e:
-            print(f"Error reading the SVS file: {e}")
+            logging.error(f"Error reading the SVS file: {e}")
         finally:
-            slide.close()
+            if slide:
+                slide.close()

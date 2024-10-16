@@ -1,72 +1,35 @@
-# svs_processor/processor.py
-
-import os
-import subprocess
+import logging
 from .metadata_extractor import MetadataExtractor
 from .image_data_extractor import ImageDataExtractor
 from .thumbnail_extractor import ThumbnailExtractor
 from .png_converter import PNGConverter
 
-class SVSProcessor:
-    """
-    A class to process SVS files. This class provides methods to extract metadata,
-    image data, thumbnails, and convert the SVS file to PNG format.
+# Setup logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-    Attributes:
-        svs_file_path (str): The path to the SVS file to process.
-        output_dir (str): The directory where output files will be saved.
-        thumbnail_size (tuple): The size of the thumbnail to extract.
-        level (int): The level of resolution to extract from the SVS file.
-    """
-    def __init__(self, wsi_filename, output_dir, thumbnail_size=(200, 200), level=0, wsi_url=None):
-        """Initializes the SVSProcessor with paths, thumbnail size, and image level."""
-        self.images_dir = 'images'
-        self.svs_file_path = wsi_filename
+class SVSProcessor:
+    def __init__(self, svs_file_path, output_dir, thumbnail_size=(200, 200), level=0):
+        self.svs_file_path = svs_file_path
         self.output_dir = output_dir
         self.thumbnail_size = thumbnail_size
         self.level = level
-        self.wsi_url = wsi_url
-
-        # Ensure output directory exists
-        if not os.path.exists(self.output_dir):
-            os.makedirs(self.output_dir)
-
-        self.png_folder = os.path.join(self.output_dir, 'png')
-        if not os.path.exists(self.png_folder):
-            os.makedirs(self.png_folder)
-
-        self.download_svs_file()
-
-    def download_svs_file(self):
-        """Download the SVS file if it's not already present in the images folder."""
-        if not os.path.exists(self.images_dir):
-            os.makedirs(self.images_dir)
-
-        if not os.path.isfile(self.svs_file_path):
-            if self.wsi_url:
-                print(f"Downloading SVS file from {self.wsi_url} into {self.images_dir}...")
-                try:
-                    subprocess.run(['curl', '-o', self.svs_file_path, self.wsi_url], check=True)
-                    print(f"Downloaded {self.svs_file_path}")
-                except subprocess.CalledProcessError as e:
-                    print(f"Failed to download SVS file: {e}")
-            else:
-                print(f"No URL provided to download the SVS file.")
 
     def process(self):
-        """Runs all steps of SVS file processing."""
-        # Extract metadata
-        metadata_extractor = MetadataExtractor(self.svs_file_path, self.output_dir)
-        metadata_extractor.extract()
+        logging.info(f"Starting processing for {self.svs_file_path}")
 
-        # Extract image data
-        image_data_extractor = ImageDataExtractor(self.svs_file_path, self.output_dir)
-        image_data_extractor.extract()
+        try:
+            metadata_extractor = MetadataExtractor(self.svs_file_path, self.output_dir)
+            metadata_extractor.extract()
 
-        # Extract thumbnail
-        thumbnail_extractor = ThumbnailExtractor(self.svs_file_path, self.output_dir, self.thumbnail_size)
-        thumbnail_extractor.extract()
+            image_data_extractor = ImageDataExtractor(self.svs_file_path, self.output_dir)
+            image_data_extractor.extract()
 
-        # Convert to PNG for all levels dynamically
-        png_converter = PNGConverter(self.svs_file_path, self.png_folder)
-        png_converter.convert_all_levels()
+            thumbnail_extractor = ThumbnailExtractor(self.svs_file_path, self.output_dir, self.thumbnail_size)
+            thumbnail_extractor.extract()
+
+            png_converter = PNGConverter(self.svs_file_path, self.output_dir)
+            png_converter.convert_all_levels()
+
+            logging.info(f"Successfully processed {self.svs_file_path}")
+        except Exception as e:
+            logging.error(f"Error processing {self.svs_file_path}: {e}")

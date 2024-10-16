@@ -1,5 +1,9 @@
 import os
+import logging
 from svs_processor.processor import SVSProcessor
+
+# Setup logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 if __name__ == "__main__":
     
@@ -10,39 +14,44 @@ if __name__ == "__main__":
         os.makedirs(output_dir)
 
     if not os.path.exists(images_dir):
-        print(f"Error: The images directory '{images_dir}' does not exist.")
+        logging.error(f"The images directory '{images_dir}' does not exist.")
     else:
-        print(f"Processing files in {os.path.abspath(images_dir)}...")
+        logging.info(f"Processing files in {os.path.abspath(images_dir)}...")
 
-    processed_files = 0
+    processed_files = 0  # Counter to track files that were actually processed
+    skipped_files = 0    # Counter to track skipped files (where metadata already exists)
+
     for svs_filename in os.listdir(images_dir):
         if svs_filename.endswith(".svs"):
             svs_file_path = os.path.join(images_dir, svs_filename)
 
-            print(f"Looking for SVS file at: {os.path.abspath(svs_file_path)}")
+            logging.info(f"Looking for SVS file at: {os.path.abspath(svs_file_path)}")
 
             if not os.path.exists(svs_file_path):
-                print(f"Error: File {os.path.abspath(svs_file_path)} not found.")
+                logging.error(f"File {os.path.abspath(svs_file_path)} not found.")
                 continue
 
             file_output_dir = os.path.join(output_dir, os.path.splitext(svs_filename)[0])
             if not os.path.exists(file_output_dir):
                 os.makedirs(file_output_dir)
 
-            # Check if the metadata file already exists
             metadata_file_path = os.path.join(file_output_dir, f"{os.path.splitext(svs_filename)[0]}_metadata.csv")
             if os.path.exists(metadata_file_path):
-                print(f"Metadata already exists for {svs_filename}. Skipping...")
+                logging.info(f"Metadata already exists for {svs_filename}. Skipping...")
+                skipped_files += 1  # Increment the skipped files counter
                 continue
 
-            print(f"Processing {svs_filename}...")
+            logging.info(f"Processing {svs_filename}...")
             processor = SVSProcessor(svs_file_path, file_output_dir, thumbnail_size=(200, 200), level=0)
             processor.process()
 
             processed_files += 1
-            print(f"Finished processing {svs_filename}\n")
+            logging.info(f"Finished processing {svs_filename}\n")
 
-    if processed_files == 0:
-        print(f"No SVS files found in {images_dir}. Please check the folder and try again.")
-    else:
-        print(f"Processed {processed_files} SVS files.")
+    # Final status reporting
+    if processed_files == 0 and skipped_files == 0:
+        logging.warning(f"No SVS files found in {images_dir}. Please check the folder and try again.")
+    elif processed_files > 0:
+        logging.info(f"Processed {processed_files} SVS files.")
+    if skipped_files > 0:
+        logging.info(f"Skipped {skipped_files} SVS files (metadata already exists).")
